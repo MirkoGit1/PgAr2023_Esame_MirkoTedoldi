@@ -2,7 +2,7 @@ package it.mirko.fp.esame.PathFinding;
 
 public class Node {
     private final String type;
-    private final boolean alreadyVisited = false;
+    private boolean alreadyVisited;
 
     public Node(int num) {
         this.type = getTypeFromNum(num);
@@ -33,4 +33,13 @@ public class Node {
         Node node = new Node(typeNumber);
         return node;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public boolean isAlreadyVisited() {
+        return alreadyVisited;
+    }
+
 }

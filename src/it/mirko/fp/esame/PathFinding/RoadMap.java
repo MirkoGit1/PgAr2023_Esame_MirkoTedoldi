@@ -12,6 +12,14 @@ public class RoadMap {
         this.nodeAdjagencies = nodeAdjagencies;
     }
 
+    public Map<Integer, Node> getNodes() {
+        return nodes;
+    }
+
+    public Map<Integer, List<Integer>> getNodeAdjagencies() {
+        return nodeAdjagencies;
+    }
+
     @Override
     public String toString() {
         return "RoadMap{" +
