@@ -41,6 +41,7 @@ public class Reader {
             System.out.println(e.getMessage());
         }
 
+        //Mappe che andranno riempite leggendo l'xml
         var nodesMap = new HashMap<Integer, Node>();
         var nodeRoutesMap = new HashMap<Integer, List<Integer>>();
         List <Integer> linkList = new ArrayList<>();

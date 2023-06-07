@@ -6,11 +6,11 @@ public class Tamagolem {
     private static int hp = 20;
     private List<Element> stoneList;
 
-    public static int getHp() {
+    public int getHp() {
         return hp;
     }
 
-    public static void setHp(int hp) {
+    public void setHp(int hp) {
         Tamagolem.hp = hp;
     }
 

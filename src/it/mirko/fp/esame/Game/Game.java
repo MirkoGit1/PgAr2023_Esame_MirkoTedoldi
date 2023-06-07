@@ -2,7 +2,6 @@ package it.mirko.fp.esame.Game;
 
 import it.ayman.fp.lib.Menu;
 import it.ayman.fp.lib.Title;
-import it.mirko.fp.esame.Main;
 import it.mirko.fp.esame.Parsing.Reader;
 import it.mirko.fp.esame.PathFinding.RoadMap;
 import it.mirko.fp.esame.TamaGolem.Tamagolem;
@@ -41,9 +40,10 @@ public class Game {
     private static Player player = null;
     private static int deathCount = 0;
     private static int points = 0;
+    private static final int TAMAGOLEM_HP = 20;
 
     public Game(Player player) {
-        this.player = player;
+        Game.player = player;
     }
 
     /**
@@ -61,12 +61,14 @@ public class Game {
     /**
      * Metodo che restituisce l'id del nodo scelto dall'utente
      * @param map mappa in cui si trovano i nodi
-     * @param i
+     * @param i il path scelto
      * @return l'id del nodo scelto
      */
 
     private static int choosePath (RoadMap map, int i){
         List<String> options = new ArrayList<>();
+        //Per ogni nodo assegnato al nodo di partenza, lo aggiungo ad options, che poi verrà assegnato ad
+        //optionsArray per poter essere inserito nel menu
         for(Integer nodeId : map.getNodeAdjagencies().get(i)){
             options.add(nodeId.toString());
         }
@@ -75,6 +77,10 @@ public class Game {
         return map.getNodeAdjagencies().get(i).get(menu.choose(true, false) - 1);
     }
 
+    /**
+     * Metodo che cambia randomicamente le statistiche del player
+     * @param player il player da modificare
+     */
     private static void randomStatsChange(Player player){
         int hpModifyer, dmgModifyer;
         Random rand = new Random();
@@ -82,6 +88,7 @@ public class Game {
         dmgModifyer = rand.nextInt(7) - 3;
         System.out.printf(STATS_CHANGING, hpModifyer, dmgModifyer);
 
+        //Che siano positivi o negativi, essi vanno sommati ai dati originali
         player.setHp(player.getHp() + hpModifyer);
         player.setDamage(player.getDamage() + dmgModifyer);
     }
@@ -95,7 +102,7 @@ public class Game {
         int damageDealt = enemy.getHp() - player.getDamage();
         System.out.printf(DAMAGE_DEALT, damageDealt);
         enemy.setHp(enemy.getHp() - player.getDamage());
-        //Se il nemico non è gia morto
+        //Se il nemico non è già morto allora può attaccare
         if(enemy.getHp() > 0){
             int damageRecieved = player.getHp() - enemy.getDamage();
             player.setHp(damageRecieved);
@@ -110,6 +117,7 @@ public class Game {
      * @return 0 se ha vinto il player, 1 se ha vinto il nemico
      */
     private static int startBattleCycle (Player player, Enemy enemy){
+        //fino a quando entrambi sono in vita, verranno ripetuti i cicli del combattimento
         while(player.getHp() > 0 && enemy.getHp() > 0){
             startTurn(player, enemy);
             if(player.getHp() <= 0)
@@ -121,24 +129,36 @@ public class Game {
     }
 
     //Metodi che cambiano i valori di tamagolem e delle loro pietre
+
+    /**
+     * Metodo che cambia i valori delle stats di un golem
+     * @param player il player a cui appartengono i golem
+     */
     private static void changeGolemStats(Player player){
         Random rand = new Random();
         int randomNum = rand.nextInt(2);
+        //Randomicamente, c'è un 50% di probabilità di riacquisire la vita, e un altro 50% di perdere un golem
         if(randomNum == 0){
             for (Tamagolem golem : player.getGolemList()){
                 golem.setHp(20);
             }
-            else if (randomNum == 1){
-                Random rand1 = new Random();
-                int randomNum1 = rand.nextInt(player.getGolemList().size());
-                player.getGolemList().get(randomNum1).setHp(0);
-            }
+        if (randomNum == 1){
+            int randomNum1 = rand.nextInt(player.getGolemList().size());
+            player.getGolemList().get(randomNum1).setHp(0);
+        }
         }
     }
 
+    /**
+     * Metodo per cambiare le statistiche delle pietre all'interno del balance
+     * @param balance da modificare
+     */
     private static void changeStoneStats(Balance balance){
         Random rand = new Random();
         int randomNum = rand.nextInt(2);
+        //Randomicamente, sceglie quale opzione effettuare
+
+        //Opzione 1
         if (randomNum == 0) {
             Menu menu = new Menu(ELEMENT_HEADER, ELEMENTS);
             int choice1 = menu.choose(true, true);
@@ -153,6 +173,7 @@ public class Game {
             }
         }
 
+        //Opzione 2
         else if(randomNum == 1){
             Menu menu = new Menu(ELEMENT_HEADER, ELEMENTS);
             int choice1 = menu.choose(true, true);
@@ -166,6 +187,7 @@ public class Game {
                 }
             }
         }
+        //Opzione 3
         else if(randomNum == 2){
             for (int i = 0; i < ELEMENTS_N; i++){
                 for (int j = 0; j < ELEMENTS_N; j++){
@@ -175,6 +197,11 @@ public class Game {
         }
     }
 
+    /**
+     * Metodo che implementa tutti i tipi di cambiamento che un golem o l'equilibrio possono subire
+     * @param player il player corrente
+     * @param balance il balance corrente
+     */
     private static void randomTamaStatsChange (Player player, Balance balance){
         Random rand = new Random();
         int randomNum = rand.nextInt(2);
@@ -186,6 +213,11 @@ public class Game {
         }
     }
 
+    /**
+     * Metodo che inizia un game normale, senza tamagolem
+     * @param map la mappa scelta dall'utente
+     * @return lo stato di salute del player (0 se vivo, 1 se morto)
+     */
     private static int startGame (RoadMap map){
         //Setto il player e la sua posizione corrente, ovvero al nodo 1
         player = new Player();
@@ -217,30 +249,55 @@ public class Game {
                 }
             }
         }
+
+        //Se sono ad un end node, inizio una battaglia contro il boss
         if (map.getNodes().get(player.getCurrentPosition()).getType().equals(END_NODE)){
             Enemy boss = new Enemy();
             boss.bossGenerator();
             System.out.println(BOSS_MESSAGE);
             if(startBattleCycle(player, boss) ==0){
                 System.out.println(BOSS_DEFEATED);
-                System.out.printf(POINTS_EARNED, 10);
-                if(!map.isAlreadyDefeated()){
+
+                //Se non avevo già passato questa mappa, ricevo 10 punti
+                if(!RoadMap.isAlreadyDefeated()){
+                    System.out.printf(POINTS_EARNED, 10);
                     points += 10;
-                    map.setAlreadyDefeated(true);
+                    RoadMap.setAlreadyDefeated(true);
                 }
                 return 0;
             }
-            else return 1;
+            //In caso di sconfitta, aumenta il deathCounter e ritorno 1
+            else {
+                deathCount++;
+                System.out.println(DEATH_MESSAGE);
+                return 1;
+            }
         }
         return 0;
     }
 
+    /**
+     * Metodo per gestire le battaglie tra tamagolem
+     * @param player il player corrente
+     * @param tamagolem il tamagolem avversario
+     * @return lo stato di salute del player
+     */
+    private static int startTamaBattleCycle(Player player, Tamagolem tamagolem){
+        return 0;
+    }
 
-    private static int startTamaGame (Player player, Balance balance, RoadMap map){
+
+    /**
+     * Metodo per iniziare una partita con i tamagolem
+     * @param balance il balance della partita
+     * @param map la mappa su cui si svolge la partita
+     * @return lo stato di salute del player (0 se vivo, 1 se morto)
+     */
+    private static int startTamaGame (Balance balance, RoadMap map){
         player = new Player();
         player.setCurrentPosition(1);
 
-        //Fino a quando non mi trovo nel nodo finale, ovvero alla battaglia contro il boss, continuo a procedere nei nodi classici
+        //Fino a quando non mi trovo nel nodo finale, ovvero alla battaglia contro il TamaBoss, continuo a procedere nei nodi classici
         while(!map.getNodes().get(player.getCurrentPosition()).getType().equals(END_NODE)){
 
             //Faccio scegliere al giocatore la prossima posizione da occupare
@@ -257,6 +314,8 @@ public class Game {
                 if(startTamaBattleCycle(player, tamagolem) == 0){
                     System.out.println(CONGRATS);
                 }
+
+                //In caso di sconfitta, aumenta il deathCounter e ritorno 1
                 else{
                     deathCount++;
                     System.out.println(DEATH_MESSAGE);
@@ -271,40 +330,50 @@ public class Game {
             if(startBattleCycle(player, boss) ==0){
                 System.out.println(BOSS_DEFEATED);
                 System.out.printf(POINTS_EARNED, 10);
-                if(!map.isAlreadyDefeated()){
+                if(!RoadMap.isAlreadyDefeated()){
                     points += 10;
-                    map.setAlreadyDefeated(true);
+                    RoadMap.setAlreadyDefeated(true);
                 }
                 return 0;
             }
-            else return 1;
+
+            //In caso di sconfitta, aumenta il deathCounter e ritorno 1
+            else {
+                deathCount++;
+                System.out.println(DEATH_MESSAGE);
+                return 1;
+            }
         }
         return 0;
     }
 
     /**
      * Scegli la modalità con cui giocare, se normale o tamagolem
-     * @return
      * @throws XMLStreamException
      */
     public static void gameInit () throws XMLStreamException {
 
+        //Stampo titolo, menu iniziale e faccio scegliere la modalità all'utente
         System.out.println(Title.createTitle(TITOLO, true));
         while (Game.getDeathCount() < 10) {
             Menu startingMenu = new Menu(STARTING_MENU_HEADER, MODE_CHOICES);
             int choice = startingMenu.choose(true, false) - 1;
+            //Scelgo la partita normale
             if(choice == 0) {
                 RoadMap map = Reader.generateMapFromChoice();
+                assert map != null;
                 if (Game.startGame(map) == 0)
                     System.out.println("Hai vinto");
                 else
                     System.out.println("Hai perso!");
             }
+            //Scelgo tamagolem
             else{
                 System.out.println(WELCOME_TAMAGOLEM);
                 RoadMap map = Reader.generateMapFromChoice();
-                Balance balance = new Balance(3, Tamagolem.getHp());
-                startTamaGame(player, balance, map);
+                Balance balance = new Balance(3, TAMAGOLEM_HP);
+                assert map != null;
+                startTamaGame(balance, map);
             }
         }
     }
