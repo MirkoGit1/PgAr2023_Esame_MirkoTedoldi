@@ -1,5 +1,4 @@
 package it.mirko.fp.esame.Game;
 
-public class Fight {
-
+public class TamaGame {
 }

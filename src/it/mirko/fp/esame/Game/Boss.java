@@ -1,5 +1,0 @@
-package it.mirko.fp.esame.Game;
-
-public class Boss extends Enemy{
-
-}

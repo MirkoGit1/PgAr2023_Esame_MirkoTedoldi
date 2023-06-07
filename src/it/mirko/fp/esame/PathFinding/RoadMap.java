@@ -6,6 +6,7 @@ public class RoadMap {
 
     private final Map<Integer, Node> nodes;
     private final Map<Integer, List<Integer>> nodeAdjagencies;
+    private static boolean alreadyDefeated = false;
 
     public RoadMap(Map<Integer, Node> nodes, Map<Integer, List<Integer>> nodeAdjagencies) {
         this.nodes = nodes;
@@ -18,6 +19,14 @@ public class RoadMap {
 
     public Map<Integer, List<Integer>> getNodeAdjagencies() {
         return nodeAdjagencies;
+    }
+
+    public static boolean isAlreadyDefeated() {
+        return alreadyDefeated;
+    }
+
+    public static void setAlreadyDefeated(boolean alreadyDefeated) {
+        RoadMap.alreadyDefeated = alreadyDefeated;
     }
 
     @Override

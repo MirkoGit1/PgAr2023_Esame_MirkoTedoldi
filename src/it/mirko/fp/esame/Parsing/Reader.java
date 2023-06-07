@@ -1,6 +1,7 @@
 package it.mirko.fp.esame.Parsing;
 
 import it.ayman.fp.lib.Menu;
+import it.mirko.fp.esame.Game.Game;
 import it.mirko.fp.esame.PathFinding.Node;
 import it.mirko.fp.esame.PathFinding.RoadMap;
 
@@ -14,25 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Reader {
-    private static final String MENU_HEADER = "Seleziona la mappa che vuoi percorrere:";
-    private static final String[] MAP_CHOICES = {"Mappa 1", "Mappa 2", "Mappa 3"};
     private static final String READER_ERROR = "Error during the reader initialization:";
     private static final String INPUT_DIRECTORY_PATH = "./InputData/Mappe.xml";
     private static final String FINE = "FINE";
     private static final String NODO = "NODO";
     private static final String COLLEGAMENTI = "COLLEGAMENTI";
     private static final String COLLEGAMENTO = "COLLEGAMENTO";
-
-    /**
-     * Metodo per scegliere la mappa desiderata dall'utente
-     * @return l'int relativo alla scelta del path
-     */
-    public static int choosePath () {
-
-        Menu fileMenu = new Menu(MENU_HEADER, MAP_CHOICES);
-
-        return fileMenu.choose(true, false) - 1;
-    }
 
 
     /**
@@ -75,13 +63,15 @@ public class Reader {
                             linkList.add(Integer.parseInt(nodeXmlReader.getText()));
                 }
             }
-            else if(nodeXmlReader.getLocalName().equals(COLLEGAMENTI) && nodeXmlReader.getEventType() == XMLEvent.END_ELEMENT){
+            else if(nodeXmlReader.getEventType() == XMLEvent.END_ELEMENT){
                 nodeRoutesMap.put(currentId, linkList);
                 //Una volta creato il nuovo nodo, lo aggiungo alla nodesMap, assieme al suo id
                 //e ad un numero casuale, che corrisponde al tipo del nodo corrente
                 int typeNumber = (int) (Math.random() * 2);
                 Node node = new Node(typeNumber);
                 nodesMap.put(currentId, node);
+                nodeXmlReader.next();
+                nodeXmlReader.next();
             }
         } while (!nodeXmlReader.getLocalName().equals(FINE));
 
@@ -226,8 +216,8 @@ public class Reader {
      * @throws XMLStreamException
      */
     public static RoadMap generateMapFromChoice () throws XMLStreamException {
-        int menuChoice = choosePath();
-        switch (menuChoice) {
+        int menuChoice = Game.choosePath();
+        switch (menuChoice + 1) {
             case 1 -> {
                 return defaultMapGenerator();
             }
