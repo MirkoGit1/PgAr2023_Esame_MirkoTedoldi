@@ -33,6 +33,9 @@ public class Game {
     private static final String POINTS_EARNED = "Hai guadagnato %d punti! Congratulazioni!\n";
     private static final String DEATH_MESSAGE = "Oh no! Sei stato sconfitto!";
     private static final String TITOLO = "A STRANGE WORLD";
+    private static final String ELEMENT_HEADER = "Scegli un elemento dalla lista:";
+    private static final String[] ELEMENTS = {"Water", "Fire", "Hearth", "Electro", "Air", "Ether", "Plasma",  "Antimatter", "Light", "Darkness"};
+    private static final int ELEMENTS_N = 10;
 
 
     private static Player player = null;
@@ -98,9 +101,6 @@ public class Game {
             player.setHp(damageRecieved);
             System.out.printf(DAMAGE_RECIEVED, damageRecieved);
         }
-        else{
-
-        }
     }
 
     /**
@@ -120,8 +120,123 @@ public class Game {
         return 0;
     }
 
+    //Metodi che cambiano i valori di tamagolem e delle loro pietre
+    private static void changeGolemStats(Player player){
+        Random rand = new Random();
+        int randomNum = rand.nextInt(2);
+        if(randomNum == 0){
+            for (Tamagolem golem : player.getGolemList()){
+                golem.setHp(20);
+            }
+            else if (randomNum == 1){
+                Random rand1 = new Random();
+                int randomNum1 = rand.nextInt(player.getGolemList().size());
+                player.getGolemList().get(randomNum1).setHp(0);
+            }
+        }
+    }
+
+    private static void changeStoneStats(Balance balance){
+        Random rand = new Random();
+        int randomNum = rand.nextInt(2);
+        if (randomNum == 0) {
+            Menu menu = new Menu(ELEMENT_HEADER, ELEMENTS);
+            int choice1 = menu.choose(true, true);
+            int choice2 = menu.choose(true, true);
+            for (int i = 0; i < ELEMENTS_N; i++) {
+                if (balance.getBalance()[1][i] != choice2) {
+                    balance.getBalance()[choice1][i] -= 1;
+                }
+                else{
+                    balance.getBalance()[choice1][i] += ELEMENTS_N - 2;
+                }
+            }
+        }
+
+        else if(randomNum == 1){
+            Menu menu = new Menu(ELEMENT_HEADER, ELEMENTS);
+            int choice1 = menu.choose(true, true);
+            int choice2 = menu.choose(true, true);
+            for (int i = 0; i < ELEMENTS_N; i++) {
+                if (balance.getBalance()[1][i] != choice2) {
+                    balance.getBalance()[choice1][i] += 1;
+                }
+                else{
+                    balance.getBalance()[choice1][i] -= ELEMENTS_N - 2;
+                }
+            }
+        }
+        else if(randomNum == 2){
+            for (int i = 0; i < ELEMENTS_N; i++){
+                for (int j = 0; j < ELEMENTS_N; j++){
+                    balance.getBalance()[i][j] *= 2;
+                }
+            }
+        }
+    }
+
+    private static void randomTamaStatsChange (Player player, Balance balance){
+        Random rand = new Random();
+        int randomNum = rand.nextInt(2);
+        if (randomNum == 0){
+            changeGolemStats(player);
+        }
+        else{
+            changeStoneStats(balance);
+        }
+    }
+
     private static int startGame (RoadMap map){
         //Setto il player e la sua posizione corrente, ovvero al nodo 1
+        player = new Player();
+        player.setCurrentPosition(1);
+
+        //Fino a quando non mi trovo nel nodo finale, ovvero alla battaglia contro il Golem boss, continuo a procedere nei nodi classici
+        while(!map.getNodes().get(player.getCurrentPosition()).getType().equals(END_NODE)){
+
+            //Faccio scegliere al giocatore la prossima posizione da occupare
+            player.setCurrentPosition(choosePath(map, player.getCurrentPosition()));
+
+            //Se si tratta di un nodo che cambia le statistiche, agisco richiamando il metodo adatto
+            if (map.getNodes().get(player.getCurrentPosition()).getType().equals(STATS_CHANGE)) {
+                randomTamaStatsChange(player);
+                if(player.getHp() <= 0)
+                    return 1;
+            }
+
+            //In caso contrario, inizio la battaglia
+            else if (map.getNodes().get(player.getCurrentPosition()).getType().equals(BATTLE)){
+                Enemy enemy = new Enemy();
+                if(startBattleCycle(player, enemy) == 0){
+                    System.out.println(CONGRATS);
+                }
+                else{
+                    deathCount++;
+                    System.out.println(DEATH_MESSAGE);
+                    return 1;
+                }
+            }
+        }
+        if (map.getNodes().get(player.getCurrentPosition()).getType().equals(END_NODE)){
+            Enemy boss = new Enemy();
+            boss.bossGenerator();
+            System.out.println(BOSS_MESSAGE);
+            if(startBattleCycle(player, boss) ==0){
+                System.out.println(BOSS_DEFEATED);
+                System.out.printf(POINTS_EARNED, 10);
+                if(!map.isAlreadyDefeated()){
+                    points += 10;
+                    map.setAlreadyDefeated(true);
+                }
+                return 0;
+            }
+            else return 1;
+        }
+        return 0;
+    }
+
+
+    private static int startTamaGame (Player player, Balance balance, RoadMap map){
         player = new Player();
         player.setCurrentPosition(1);
 
@@ -133,15 +248,13 @@ public class Game {
 
             //Se si tratta di un nodo che cambia le statistiche, agisco richiamando il metodo adatto
             if (map.getNodes().get(player.getCurrentPosition()).getType().equals(STATS_CHANGE)) {
-                randomStatsChange(player);
-                if(player.getHp() <= 0)
-                    return 1;
+                randomTamaStatsChange(player, balance);
             }
 
             //In caso contrario, inizio la battaglia
             else if (map.getNodes().get(player.getCurrentPosition()).getType().equals(BATTLE)){
-                Enemy enemy = new Enemy();
-                if(startBattleCycle(player, enemy) == 0){
+                Tamagolem tamagolem = new Tamagolem();
+                if(startTamaBattleCycle(player, Tamagolem) == 0){
                     System.out.println(CONGRATS);
                 }
                 else{
@@ -189,7 +302,9 @@ public class Game {
             }
             else{
                 System.out.println(WELCOME_TAMAGOLEM);
+                RoadMap map = Reader.generateMapFromChoice();
                 Balance balance = new Balance(3, Tamagolem.getHp());
+                startTamaGame(player, balance, map);
             }
         }
     }

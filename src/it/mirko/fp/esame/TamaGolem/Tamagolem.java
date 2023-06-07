@@ -9,4 +9,9 @@ public class Tamagolem {
     public static int getHp() {
         return hp;
     }
+
+    public static void setHp(int hp) {
+        Tamagolem.hp = hp;
+    }
+
 }

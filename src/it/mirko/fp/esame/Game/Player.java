@@ -1,9 +1,13 @@
 package it.mirko.fp.esame.Game;
 
+import it.mirko.fp.esame.TamaGolem.Tamagolem;
+
+import java.util.List;
+
 public class Player {
     private int hp = 20;
     private int damage = 5;
-
+    private List<Tamagolem> golemList;
     private int currentPosition;
 
     public void setCurrentPosition(int currentPosition) {
@@ -12,6 +16,10 @@ public class Player {
 
     public int getCurrentPosition() {
         return currentPosition;
+    }
+
+    public List<Tamagolem> getGolemList() {
+        return golemList;
     }
 
     public int getHp() {
