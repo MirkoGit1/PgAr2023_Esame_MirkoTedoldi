@@ -199,7 +199,7 @@ public class Game {
 
             //Se si tratta di un nodo che cambia le statistiche, agisco richiamando il metodo adatto
             if (map.getNodes().get(player.getCurrentPosition()).getType().equals(STATS_CHANGE)) {
-                randomTamaStatsChange(player);
+                randomStatsChange(player);
                 if(player.getHp() <= 0)
                     return 1;
             }
@@ -254,7 +254,7 @@ public class Game {
             //In caso contrario, inizio la battaglia
             else if (map.getNodes().get(player.getCurrentPosition()).getType().equals(BATTLE)){
                 Tamagolem tamagolem = new Tamagolem();
-                if(startTamaBattleCycle(player, Tamagolem) == 0){
+                if(startTamaBattleCycle(player, tamagolem) == 0){
                     System.out.println(CONGRATS);
                 }
                 else{
